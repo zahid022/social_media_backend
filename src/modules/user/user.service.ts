@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { ClsService } from "nestjs-cls";
 import { UserEntity } from "src/database/entities/user.entity";
@@ -7,6 +7,7 @@ import { UserProfileUpdateDto } from "./dto/user-profile-update.dto";
 import { ProfileEntity } from "src/database/entities/profile.entity";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { compare } from "bcrypt";
+import { FollowService } from "./follow/follow.service";
 
 @Injectable()
 export class UserService {
@@ -14,6 +15,8 @@ export class UserService {
     private profileRepo: Repository<ProfileEntity>
 
     constructor(
+        @Inject(forwardRef(() => FollowService))
+        private followService : FollowService,
         @InjectDataSource() private dataSource: DataSource,
         private cls: ClsService
     ) {
@@ -52,9 +55,23 @@ export class UserService {
     async updateProfile(params: UserProfileUpdateDto) {
         let userId = this.cls.get<UserEntity>('user').id
 
-        let { affected } = await this.profileRepo.update({ userId }, params)
+        if (typeof params.isPrivate === 'boolean') {
+            await this.userRepo.update(
+                { id: userId },
+                { isPrivate: params.isPrivate },
+            );
 
-        if (!affected) throw new NotFoundException("user is not found")
+            if(params.isPrivate === false){
+                await this.followService.acceptPendingRequests()
+            }
+
+            delete params.isPrivate;
+
+        }
+
+        if (Object.keys(params).length > 0) {
+            await this.profileRepo.update({ userId: userId }, params);
+        }
 
         return {
             message: "User is uppdated successfully"
@@ -78,5 +95,9 @@ export class UserService {
         return {
             message: "Password is updated successfully"
         }
+    }
+
+    async incrementCount(userId: number, type: 'following' | 'follower' | 'postCount', value: number) {
+        return this.profileRepo.increment({ userId }, type, value)
     }
 }

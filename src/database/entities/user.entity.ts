@@ -1,7 +1,8 @@
 import { hash } from "bcrypt";
-import { BaseEntity, BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BaseEntity, BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { ProfileEntity } from "./profile.entity";
 import { UserProvider } from "src/shared/enums/User.types";
+import { FollowEntity } from "./folllow.entity";
 
 @Entity("users")
 export class UserEntity extends BaseEntity {
@@ -37,6 +38,12 @@ export class UserEntity extends BaseEntity {
 
     @OneToOne(() => ProfileEntity, (profile: ProfileEntity) => profile.user, { cascade: true })
     profile: ProfileEntity
+
+    @OneToMany(() => FollowEntity, (follow : FollowEntity) => follow.from)
+    following : FollowEntity[]
+
+    @OneToMany(() => FollowEntity, (follow : FollowEntity) => follow.to)
+    follower : FollowEntity[]
 
     @BeforeInsert()
     @BeforeUpdate()

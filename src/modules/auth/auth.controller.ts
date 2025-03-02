@@ -22,10 +22,14 @@ export class AuthController {
     }
 
     @Post('firebase')
-    loginWithFirebase(
+    async loginWithFirebase(
+        @Res() res: Response,
         @Body() body : LoginWithFirebaseDto
     ){
-        return this.authService.loginWithFirebase(body)
+        let result = await this.authService.loginWithFirebase(body)
+        res.cookie("authorization", result.token)
+
+        res.json(result)
     }
 
     @Post("login")

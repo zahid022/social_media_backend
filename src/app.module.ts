@@ -14,6 +14,7 @@ import { UserModule } from './modules/user/user.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { FollowModule } from './modules/user/follow/follow.module';
 
 @Module({
   imports: [
@@ -91,6 +92,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
     JobsModule,
     UserModule,
     UploadModule,
+    FollowModule
   ],
   controllers: [],
   providers: [AppService],
